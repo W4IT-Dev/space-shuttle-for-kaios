@@ -7,10 +7,9 @@ let spawnTime = 2100;
 let score = 0;
 let highScore = 0;
 let dead = false;
-let gameDifficulty = 'medium';
 
-let updateinterval, ufospawn, checkcollion, checkshoot, shootingufos;
-
+let updateinterval, ufospawn, checkcollion, checkshoot, shootingufos, shoottimeout;
+//OG: https://github.com/JunusErgin/raketen-spiel
 let onhome = true;
 let onexit = false;
 let ontutorial = false;
@@ -23,12 +22,13 @@ let on2 = false;
 let on3 = false;
 let on4
 let ingame = false;
+let canShoot = true;
 
-let music = new Audio("img/sounds/music.mp3");
+let music = new Audio("img/sounds/this.mp3");
 let shotSound = new Audio("img/sounds/shot.wav");
 let explosionSound = new Audio("img/sounds/explosion.mp3");
-
 let soundEffects = true;
+music.playbackRate = 0.8;
 
 music.loop = true;
 music.volume = 0.6;
@@ -91,29 +91,6 @@ document.addEventListener('keydown', (e) => {
                 console.log('.' + document.activeElement.className)
                 console.log(document.activeElement.id)
                 nav(1, '.' + document.activeElement.className);
-                // if (element(document.getElementById('music'))) {
-                //     sound.focus();
-                // } else if (element(sound)) {
-                //     document.getElementById('music').focus();
-                // } else if (element(document.getElementById('option-mainsettings'))) {
-                //     document.getElementById('option-info').focus();
-                //     mainsettings.style.display = "none";
-                //     info.style.display = "block";
-                //     oninfo = true;
-                //     onmainsettings = false;
-                // } else if (element(document.getElementById('option-info'))) {
-                //     document.getElementById("option-mainsettings").focus();
-                //     info.style.display = "none";
-                //     mainsettings.style.display = "block";
-                //     oninfo = false;
-                //     onmainsettings = true;
-                // } else if (element(easy)) {
-                //     medium.focus();
-                // } else if (element(medium)) {
-                //     hard.focus();
-                // } else if (element(hard)) {
-                //     easy.focus();
-                // }
             }
 
 
@@ -135,12 +112,6 @@ document.addEventListener('keydown', (e) => {
                     mainsettings.style.display = "block";
                     oninfo = false;
                     onmainsettings = true;
-                } else if (element(easy)) {
-                    hard.focus();
-                } else if (element(medium)) {
-                    easy.focus();
-                } else if (element(hard)) {
-                    medium.focus();
                 }
             }
 
@@ -149,11 +120,7 @@ document.addEventListener('keydown', (e) => {
                 if (element(document.getElementById('option-mainsettings'), document.getElementById("option-info"))) {
                 } else if (element(document.getElementById('music'), sound)) {
                     document.getElementById("option-mainsettings").focus();
-                } else if (element(easy, medium, hard)) {
-                    document.getElementById('music').focus();
-
                 }
-                move_down();
 
             }
 
@@ -169,7 +136,6 @@ document.addEventListener('keydown', (e) => {
                 } else if (element(document.getElementById('music'), sound)) {
                     document.getElementById(gameDifficulty).focus();
                 }
-                move_up();
             }
         }
 
@@ -223,17 +189,11 @@ document.addEventListener('keydown', (e) => {
             if (e.key == '4') {
                 downKey = true;
             }
-            if (e.key == '5') {
-                shootKey = true;
-            }
             if (e.key == 'ArrowLeft') {
                 downKey = true;
             }
             if (e.key == 'ArrowRight') {
                 upKey = true;
-            }
-            if (e.key == 'Enter') {
-                shootKey = true;
             }
             //Pause Screen
             if (onpause) {
@@ -355,7 +315,7 @@ document.addEventListener('keyup', (e) => {
         downKey = false;
     }
     if (e.key == '5') {
-        shootKey = false;
+        shoot();
     }
     if (e.key == 'ArrowRight') {
         upKey = false;
@@ -365,7 +325,7 @@ document.addEventListener('keyup', (e) => {
     }
     if (e.key == 'Enter') {
         if (!onhome) {
-            shootKey = false;
+            shoot();
         }
     }
 })
@@ -420,7 +380,6 @@ function startGame() {
 function startIntervals() {
     updateinterval = setInterval(update, 40);
     checkcollion = setInterval(checkForCollion, 40);
-    checkshoot = setInterval(checkForShoot, 350);
     ufospawn = setInterval(createUfo, spawnTime);
     shootingufos = setInterval(UfosShooting, 2000);
 }
@@ -442,7 +401,7 @@ function clearIntervals() {
 function checkForCollion() {
     allUfos.forEach(function (ufo) {
         if (rocket.x + rocket.width > ufo.x && rocket.y + rocket.height > ufo.y && rocket.x < ufo.x && rocket.y < ufo.y + ufo.height) {
-            rocket.img.src = 'img/boom.png';
+            rocket.img.src = 'img/bomaa.png';
             gameOver();
             allUfos = allUfos.filter(i => i != ufo);
         }
@@ -457,7 +416,7 @@ function checkForCollion() {
                     shots = shots.filter(i => i != shot);
                 }
                 ufo.hit = true;
-                ufo.img.src = 'img/boom.png';
+                ufo.img.src = 'img/bomaa.png';
                 if (soundEffects) {
                     explosionSound.play();
                 }
@@ -474,7 +433,7 @@ function checkForCollion() {
         }
         enemyshots.forEach(function (enemyshot) {
             if (enemyshot.x < rocket.x + rocket.width && enemyshot.y > rocket.y && enemyshot.y < rocket.y + rocket.height) {
-                rocket.img.src = 'img/boom.png';
+                rocket.img.src = 'img/bomaa.png';
                 if (soundEffects) {
                     explosionSound.play();
                 }
@@ -492,22 +451,22 @@ function createUfo() {
     fastUfoChance = Math.random();
     let ufo = {
         x: 320,
-        y: Math.random() * 190,
+        y: Math.random() * 170,
         width: 58,
         height: 28,
         src: 'img/ufo.png',
         img: new Image(),
         shooting: false,
-        speed: 2
+        speed: 3.55
     };
     if (fastUfoChance >= 0.53) {
         ufo.src = 'img/fastUfo.png';
-        ufo.speed = 2.7;
+        ufo.speed = 4.36;
     }
     ufo.speed += score / 1000;
-    if (score > 500) {
+    if (score > 250) {
         chance = Math.random();
-        if (chance >= 0.45) {
+        if (chance >= (0.55 - (score / 3000))) {
             ufo.shooting = true;
         }
     }
@@ -515,31 +474,35 @@ function createUfo() {
     allUfos.push(ufo);
 }
 
-function checkForShoot() {
-    if (shootKey) {
-        let shot = {
-            x: rocket.x + 60,
-            y: rocket.y + 16,
-            width: 9,
-            height: 3.2,
-            src: 'img/shot.png',
-            img: new Image()
-        };
-        shot.img.src = shot.src;
-        shots.push(shot);
-        if (soundEffects) {
-            shotSound.play();
-        }
+function shoot() {
+    if (!canShoot) return
+    let shot = {
+        x: rocket.x + 60,
+        y: rocket.y + 16,
+        width: 9,
+        height: 3.2,
+        src: 'img/shot.png',
+        img: new Image()
+    };
+    shot.img.src = shot.src;
+    shots.push(shot);
+    if (soundEffects) {
+        shotSound.play();
     }
+    canShoot = false;
+    shoottimeout = setTimeout(() => {
+        canShoot = true;
+    }, 400)
 }
 
 function update() {
+    music.playbackRate = 0.8 + score / 1700;
     if (!dead && !onpause) {
-        if (upKey && rocket.y > -8) {
-            rocket.y -= 3.6;
+        if (upKey && rocket.y > 0) {
+            rocket.y -= 4.1
         }
-        if (downKey && rocket.y < 183) {
-            rocket.y += 3.6;
+        if (downKey && rocket.y < 160) {
+            rocket.y += 4.1
         }
         allUfos.forEach(function (ufo) {
             if (!ufo.hit) {
@@ -547,10 +510,10 @@ function update() {
             }
         });
         shots.forEach(function (shot) {
-            shot.x += 3.5;
+            shot.x += 3.8;
         });
         enemyshots.forEach(function (enemyshot) {
-            enemyshot.x -= 5;
+            enemyshot.x -= enemyshot.speed;
         });
         if (score > highScore) {
             highScore = score;
@@ -565,11 +528,12 @@ function UfosShooting() {
         if (ufo.shooting) {
             let enemyshot = {
                 x: ufo.x,
-                y: ufo.y + 13,
+                y: ufo.y,
                 width: 9,
                 height: 3.2,
                 src: 'img/shot.png',
-                img: new Image()
+                img: new Image(),
+                speed: ufo.speed *1.5
             };
             enemyshot.img.src = enemyshot.src;
             enemyshots.push(enemyshot);
@@ -580,13 +544,13 @@ function UfosShooting() {
 function loadImages() {
     // bGImg = (Math.random();
     // console.log(bGImg)
-    backgroundImage.src = 'img/background1.png';
+    backgroundImage.src = 'img/background.png';
     rocket.img = new Image();
     rocket.img.src = rocket.src;
 }
 
 function draw() {
-    ctx.drawImage(backgroundImage, 0, 0);
+    ctx.drawImage(backgroundImage, 0, 0, 317, 210);
     ctx.drawImage(rocket.img, rocket.x, rocket.y, rocket.width, rocket.height);
     allUfos.forEach(function (ufo) {
         ctx.drawImage(ufo.img, ufo.x, ufo.y, ufo.width, ufo.height);
@@ -861,42 +825,16 @@ function tutorial() {
     document.getElementById('tutorial').style.display = "block";
     onhome = false;
     setSoftKeys("", "Loading...", "");
-    tutorialImgAp.style.display = "none";
-    loadingScreen.style.display = "block";
-    loadingProgress.innerHTML = "Loading... 0%";
-    loadingProgressbar.value = 0;
-    fakeLoad();
+
+    ontutorial = true;
+    on1 = true;
+    setTutorialImageAndParagraph("img/tutorial_1.gif", "To pause the game, press the left soft key.")
+    setSoftKeys("Previous", "SKIP", "Next");
+    tutorialImgAp.style.display = "block";
 
     localStorage["watchedTutorial"] = true;
 }
 
-function showProgress(progress) {
-    loadingProgressbar.value = progress;
-    loadingProgress.innerHTML = `Loading... ${progress * 100}%`
-}
-
-function fakeLoad() {
-    setTimeout(() => {
-        showProgress(.03);
-    }, 250)
-    setTimeout(() => {
-        showProgress(.37);
-    }, 400)
-    setTimeout(() => {
-        showProgress(.71);
-    }, 700)
-    setTimeout(() => {
-        showProgress(1);
-    }, 1100)
-    setTimeout(() => {
-        ontutorial = true;
-        on1 = true;
-        setTutorialImageAndParagraph("img/tutorial_1.gif", "To pause the game, press the left soft key.")
-        setSoftKeys("Previous", "SKIP", "Next");
-        loadingScreen.style.display = "none";
-        tutorialImgAp.style.display = "block";
-    }, 1200)
-}
 
 function element(one, two, three) {
     if (arguments.length == 1) return document.activeElement == one;
@@ -911,9 +849,9 @@ function nav(move, elems) {
     const targetElement = items[next];
     console.log(currentIndex, next, items, targetElement)
 
-    // if (move === 1 && currentIndex == items.length - 1) return items[0].focus();
-    // if (move === -1 && currentIndex == 0) return items[items.length - 1].focus();
-
+    if (move === 1 && currentIndex == items.length - 1) return items[0].focus();
+    if (move === -1 && currentIndex == 0) return items[items.length - 1].focus();
+    if (!targetElement) return;
     targetElement.focus();
 }
 
@@ -928,3 +866,9 @@ function softkey(e) {
 
 document.addEventListener("keyup", softkey, true);
 document.addEventListener("keydown", softkey, true);
+
+window.onerror = (a, b, c, d, e) => {
+    console.log(`message: ${a} at ${b} in line ${c} at column ${d}`);
+    alert('error')
+    return true;
+};

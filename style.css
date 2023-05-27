@@ -4,11 +4,10 @@ body {
 }
 
 canvas {
-    background-color: red;
     position: relative;
     top: 17px;
     left: -7.5px;
-    background-image: url(img/background1.png);
+    background-image: url(img/background.png);
 }
 
 #topBar {
@@ -85,6 +84,7 @@ h3 {
     display: flex;
     justify-content: space-between;
     font-size: 16px;
+    background-color: rgba(0,0,0,0.5);
 }
 
 #softkeyLeft {
