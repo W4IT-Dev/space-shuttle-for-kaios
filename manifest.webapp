@@ -1,12 +1,12 @@
 {
    "version":"1.0.0",
    "name":"Space Shuttle",
-   "description":"Use your skills to shoot all the aliens in the space down!",
+   "description":"Simple space shuttle game",
    "type":"web",
    "launch_path":"/index.html",
    "icons":{
-      "56":"/img/icons/icon.png",
-      "128":"/img/icons/icon.png"
+      "56":"/img/icon.png",
+      "128":"/img/icon.png"
    },
    "developer":{
       "name":"W4IT Dev",
@@ -15,7 +15,7 @@
    "locales":{
       "en-US":{
          "name":"Space Shuttle",
-         "subtitle":"Use your skills to shoot all the aliens in the space down!",
+         "subtitle":"Simple space shuttle game",
          "description":"A simple solo player game to have fun and kill boredom!\nUse your D-Pad to move and Enter to shoot!"
       }
    },

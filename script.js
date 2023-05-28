@@ -24,16 +24,13 @@ let on4
 let ingame = false;
 let canShoot = true;
 
-let music = new Audio("img/sounds/this.mp3");
-let shotSound = new Audio("img/sounds/shot.wav");
-let explosionSound = new Audio("img/sounds/explosion.mp3");
+let music = new Audio("img/sounds/music.mp3");
+let shotSound = new Audio("img/sounds/sit.mp3");
+let explosionSound = new Audio("img/sounds/s.mp3");
 let soundEffects = true;
-music.playbackRate = 0.8;
 
 music.loop = true;
-music.volume = 0.6;
-shotSound.volume = 0.4;
-explosionSound.volume = 0.4;
+// music.volume = 0.2;
 
 music.play();
 let musicpause = false;
@@ -133,8 +130,6 @@ document.addEventListener('keydown', (e) => {
                     } else if (onmainsettings) {
                         document.getElementById('option-mainsettings').style.backgroundColor = 'rgb(120, 120, 120)';
                     }
-                } else if (element(document.getElementById('music'), sound)) {
-                    document.getElementById(gameDifficulty).focus();
                 }
             }
         }
@@ -339,7 +334,7 @@ function getStoredData() {
         document.getElementById('scoreDisplay').innerHTML = `HighScore: ${localStorage.getItem("highScore")}`
     }
 
-    if (localStorage.getItem("watchedTutorial")) return console.log("Tutorial already watched, won't appear again.");
+    if (localStorage.getItem("watchedTutorial")) return
     setTimeout(() => {
         tutorial()
     }, 400)
@@ -391,12 +386,6 @@ function clearIntervals() {
     clearInterval(ufospawn);
     clearInterval(shootingufos);
 }
-
-// function startUfos() {
-//     ufo.img.src = ufo.src;
-//     allUfos.push(ufo);
-
-// }
 
 function checkForCollion() {
     allUfos.forEach(function (ufo) {
@@ -457,17 +446,18 @@ function createUfo() {
         src: 'img/ufo.png',
         img: new Image(),
         shooting: false,
-        speed: 3.55
+        speed: 3.5 + (score / 1000)
     };
     if (fastUfoChance >= 0.53) {
         ufo.src = 'img/fastUfo.png';
-        ufo.speed = 4.36;
+        ufo.speed = 4.3 + (score / 1001);
     }
-    ufo.speed += score / 1000;
     if (score > 250) {
         chance = Math.random();
-        if (chance >= (0.55 - (score / 3000))) {
+        if (chance >= (0.65 - (score / 8000))) {
             ufo.shooting = true;
+            // ufo.src = "img/shootingUFO.png"
+            ufo.speed -= 0.8
         }
     }
     ufo.img.src = ufo.src;
@@ -528,43 +518,52 @@ function UfosShooting() {
         if (ufo.shooting) {
             let enemyshot = {
                 x: ufo.x,
-                y: ufo.y,
+                y: ufo.y + ufo.height / 2,
                 width: 9,
                 height: 3.2,
                 src: 'img/shot.png',
                 img: new Image(),
-                speed: ufo.speed *1.5
+                speed: ufo.speed * 1.5
             };
             enemyshot.img.src = enemyshot.src;
             enemyshots.push(enemyshot);
         }
     });
 }
-
+let warn = { src: 'img/warn.png', img: new Image() }
 function loadImages() {
-    // bGImg = (Math.random();
-    // console.log(bGImg)
     backgroundImage.src = 'img/background.png';
     rocket.img = new Image();
     rocket.img.src = rocket.src;
+    warn.img.src = warn.src
 }
 
 function draw() {
     ctx.drawImage(backgroundImage, 0, 0, 317, 210);
     ctx.drawImage(rocket.img, rocket.x, rocket.y, rocket.width, rocket.height);
     allUfos.forEach(function (ufo) {
-        ctx.drawImage(ufo.img, ufo.x, ufo.y, ufo.width, ufo.height);
+        if (ufo.shooting) {
+            ctx.drawImage(ufo.img, ufo.x, ufo.y, ufo.width, ufo.height);
+            ctx.drawImage(warn.img, ufo.x, ufo.y, 12, 12);
+
+        } else {
+            ctx.drawImage(ufo.img, ufo.x, ufo.y, ufo.width, ufo.height);
+        }
     });
     shots.forEach(function (shot) {
-        ctx.drawImage(shot.img, shot.x, shot.y, shot.width, shot.height);
+        ctx.fillStyle = "yellow";
+        ctx.fillRect(shot.x, shot.y, shot.width, shot.height);
     });
     enemyshots.forEach(function (enemyshot) {
-        ctx.drawImage(enemyshot.img, enemyshot.x, enemyshot.y, enemyshot.width, enemyshot.height);
+        ctx.fillStyle = "red";
+        ctx.fillRect(enemyshot.x, enemyshot.y, enemyshot.width, enemyshot.height);
     });
     requestAnimationFrame(draw);
 }
 
 function gameOver() {
+    music.playbackRate = 1;
+
     restartScreen.style.display = "block";
     document.getElementById("score").innerHTML = `Score: ${score}`;
     document.getElementById("highScore").innerHTML = `Highscore: ${localStorage.getItem("highScore")}`;
@@ -670,11 +669,9 @@ pauseSoundsBtn.addEventListener("click", function () {
         pauseSoundsIcon.src = "img/buttons/noSoundsButtonFocus.png";
         soundIcon.src = "img/buttons/noSoundsButton.png";
     }
-    if (musicpause && !soundEffects) {
-        volume.src = "img/novolume.png";
-    } else {
-        volume.src = "img/volume.png";
-    }
+    if (musicpause && !soundEffects) volume.src = "img/novolume.png";
+    else volume.src = "img/volume.png";
+
 });
 
 document.getElementById("music").addEventListener("click", function () {
@@ -688,11 +685,8 @@ document.getElementById("music").addEventListener("click", function () {
         musicIcon.src = "img/buttons/musicButtonFocus.png";
         pauseMusicIcon.src = "img/buttons/musicButton.png";
     }
-    if (musicpause && !soundEffects) {
-        volume.src = "img/novolume.png";
-    } else {
-        volume.src = "img/volume.png";
-    }
+    if (musicpause && !soundEffects) volume.src = "img/novolume.png";
+    else volume.src = "img/volume.png";
 });
 
 sound.addEventListener("click", function () {
@@ -712,9 +706,7 @@ sound.addEventListener("click", function () {
 });
 
 //focus
-restart.addEventListener("focus", function () {
-    restartIcon.src = "img/buttons/restartButtonFocus.png";
-});
+restart.addEventListener("focus", () => restartIcon.src = "img/buttons/restartButtonFocus.png")
 
 home.addEventListener("focus", function () {
     homeIcon.src = "img/buttons/homeButtonFocus.png";
@@ -732,9 +724,8 @@ pauseHome.addEventListener("focus", function () {
     pauseHomeIcon.src = "img/buttons/homeButtonFocus.png";
 });
 
-pauseHome.addEventListener("focus", function () {
-    pauseHomeIcon.src = "img/buttons/homeButtonFocus.png";
-});
+pauseHome.addEventListener("focus", () => pauseHomeIcon.src = "img/buttons/homeButtonFocus.png")
+
 
 pauseMusicBtn.addEventListener("focus", function () {
     if (musicpause) {
