@@ -1,6 +1,6 @@
 {
    "version":"1.0.0",
-   "name":"Space Shuttle",
+   "name":"Space Shuttle real",
    "description":"Simple space shuttle game",
    "type":"web",
    "launch_path":"/index.html",

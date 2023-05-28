@@ -7,8 +7,9 @@ let spawnTime = 2100;
 let score = 0;
 let highScore = 0;
 let dead = false;
+let death = 0;
 
-let updateinterval, ufospawn, checkcollion, checkshoot, shootingufos, shoottimeout;
+let updateinterval, ufospawn, checkcollion, checkshoot, shootingufos, shoottimeout, miniufospawn;
 //OG: https://github.com/JunusErgin/raketen-spiel
 let onhome = true;
 let onexit = false;
@@ -20,17 +21,16 @@ let onpause = false;
 let on1 = false;
 let on2 = false;
 let on3 = false;
-let on4
+let on4;
 let ingame = false;
 let canShoot = true;
 
 let music = new Audio("img/sounds/music.mp3");
-let shotSound = new Audio("img/sounds/sit.mp3");
-let explosionSound = new Audio("img/sounds/s.mp3");
+let shotSound = new Audio("img/sounds/shot.mp3");
+let explosionSound = new Audio("img/sounds/explosion.mp3");
 let soundEffects = true;
 
 music.loop = true;
-// music.volume = 0.2;
 
 music.play();
 let musicpause = false;
@@ -246,15 +246,15 @@ document.addEventListener('keydown', (e) => {
             if (e.key == 'SoftLeft') {
                 if (on2) {
                     on2 = false;
-                    setTutorialImageAndParagraph("img/tutorial/tutorial_1.gif", "To pause the game, press the left softkey.");
+                    setTutorial("img/tutorial/tutorial_1.gif", "To pause the game, press the left softkey.");
                     on1 = true;
                 } else if (on3) {
                     on3 = false;
-                    setTutorialImageAndParagraph("img/tutorial/tutorial_2.gif", "To move down, press left on your D-Pad or 4.");
+                    setTutorial("img/tutorial/tutorial_2.gif", "To move down, press left on your D-Pad or 4.");
                     on2 = true;
                 } else if (on4) {
                     on4 = false
-                    setTutorialImageAndParagraph("img/tutorial/tutorial_3.gif", "To move up, press right on your D-Pad or 6.");
+                    setTutorial("img/tutorial/tutorial_3.gif", "To move up, press right on your D-Pad or 6.");
                     on3 = true;
                     softkeyRight.innerText = "Next";
                 }
@@ -262,15 +262,15 @@ document.addEventListener('keydown', (e) => {
             if (e.key == 'SoftRight') {
                 if (on1) {
                     on1 = false;
-                    setTutorialImageAndParagraph("img/tutorial/tutorial_2.gif", "To move down, press left on your D-Pad or 4.");
+                    setTutorial("img/tutorial/tutorial_2.gif", "To move down, press left on your D-Pad or 4.");
                     on2 = true;
                 } else if (on2) {
                     on2 = false;
-                    setTutorialImageAndParagraph("img/tutorial/tutorial_3.gif", "To move up, press right on your D-Pad or 6.");
+                    setTutorial("img/tutorial/tutorial_3.gif", "To move up, press right on your D-Pad or 6.");
                     on3 = true;
                 } else if (on3) {
                     on3 = false;
-                    setTutorialImageAndParagraph("img/tutorial/tutorial_4.gif", "To shoot, press center on your D-Pad or 5.");
+                    setTutorial("img/tutorial/tutorial_4.gif", "To shoot, press center on your D-Pad or 5.");
                     on4 = true;
                     softkeyRight.innerText = "Finish";
                 } else {
@@ -346,7 +346,7 @@ function setSoftKeys(left, center, right) {
     softkeyRight.innerText = right;
 }
 
-function setTutorialImageAndParagraph(img, paragraph) {
+function setTutorial(img, paragraph) {
     tutorialImage.src = img;
     tutorialParagraph.innerText = paragraph;
 }
@@ -376,7 +376,9 @@ function startIntervals() {
     updateinterval = setInterval(update, 40);
     checkcollion = setInterval(checkForCollion, 40);
     ufospawn = setInterval(createUfo, spawnTime);
-    shootingufos = setInterval(UfosShooting, 2000);
+    miniufospawn = setInterval(miniUfo, 2500)
+
+    shootingufos = setInterval(UfosShooting, 3500);
 }
 
 function clearIntervals() {
@@ -385,6 +387,7 @@ function clearIntervals() {
     clearInterval(checkshoot);
     clearInterval(ufospawn);
     clearInterval(shootingufos);
+    clearInterval(miniufospawn)
 }
 
 function checkForCollion() {
@@ -446,22 +449,41 @@ function createUfo() {
         src: 'img/ufo.png',
         img: new Image(),
         shooting: false,
-        speed: 3.5 + (score / 1000)
+        speed: 3.4 + (score / 1000)
     };
-    if (fastUfoChance >= 0.53) {
+    if (fastUfoChance >= 0.65 - (score / 7000)) {
         ufo.src = 'img/fastUfo.png';
-        ufo.speed = 4.3 + (score / 1001);
+        ufo.speed = 4.2 + (score / 1001);
     }
     if (score > 250) {
         chance = Math.random();
         if (chance >= (0.65 - (score / 8000))) {
             ufo.shooting = true;
-            // ufo.src = "img/shootingUFO.png"
-            ufo.speed -= 0.8
+            ufo.speed -= 0.7
+            ufo.img.src = ufo.src;
+            allUfos.push(ufo);
+            UfosShooting();
+            return;
         }
+    }
+
+    ufo.img.src = ufo.src;
+    allUfos.push(ufo);
+}
+
+function miniUfo() {
+    let ufo = {
+        x: 320,
+        y: Math.random() * 175,
+        width: 47,
+        height: 25,
+        src: 'img/miniufo.png',
+        img: new Image(),
+        speed: 3 + score / 5000
     }
     ufo.img.src = ufo.src;
     allUfos.push(ufo);
+
 }
 
 function shoot() {
@@ -563,7 +585,27 @@ function draw() {
 
 function gameOver() {
     music.playbackRate = 1;
-
+    death++;
+    if (death >= 2) {
+        getKaiAd({
+            publisher: ' fe2d9134-74be-48d8-83b9-96f6d803efef',
+            app: 'Space Shuttle',
+            test: 1,
+            onerror: err => console.error('KaiAd error:', err),
+            onready: ad => {
+                ad.call('display');
+                if (ingame) {
+                    pause.style.display = "block";
+                    onpause = true;
+                    setSoftKeys("", "", "");
+                    pauseStart.focus();
+                    clearIntervals();
+                }
+                ad.on('close', () => restart.focus(), pauseStart.focus() )
+            }
+        })
+        deaht = 0;
+    }
     restartScreen.style.display = "block";
     document.getElementById("score").innerHTML = `Score: ${score}`;
     document.getElementById("highScore").innerHTML = `Highscore: ${localStorage.getItem("highScore")}`;
@@ -707,130 +749,63 @@ sound.addEventListener("click", function () {
 
 //focus
 restart.addEventListener("focus", () => restartIcon.src = "img/buttons/restartButtonFocus.png")
-
-home.addEventListener("focus", function () {
-    homeIcon.src = "img/buttons/homeButtonFocus.png";
-});
-
-pauseStart.addEventListener("focus", function () {
-    pauseStartIcon.src = "img/buttons/playButtonFocus.png";
-});
-
-pauseRestart.addEventListener("focus", function () {
-    pauseRestartIcon.src = "img/buttons/restartButtonFocus.png";
-});
-
-pauseHome.addEventListener("focus", function () {
-    pauseHomeIcon.src = "img/buttons/homeButtonFocus.png";
-});
-
+home.addEventListener("focus", () => homeIcon.src = "img/buttons/homeButtonFocus.png")
+pauseStart.addEventListener("focus", () => pauseStartIcon.src = "img/buttons/playButtonFocus.png")
+pauseRestart.addEventListener("focus", () => pauseRestartIcon.src = "img/buttons/restartButtonFocus.png")
 pauseHome.addEventListener("focus", () => pauseHomeIcon.src = "img/buttons/homeButtonFocus.png")
-
-
-pauseMusicBtn.addEventListener("focus", function () {
-    if (musicpause) {
-        pauseMusicIcon.src = "img/buttons/noMusicButtonFocus.png";
-    } else {
-        pauseMusicIcon.src = "img/buttons/musicButtonFocus.png";
-    }
+pauseHome.addEventListener("focus", () => pauseHomeIcon.src = "img/buttons/homeButtonFocus.png")
+pauseMusicBtn.addEventListener("focus", () => {
+    if (musicpause) pauseMusicIcon.src = "img/buttons/noMusicButtonFocus.png";
+    else pauseMusicIcon.src = "img/buttons/musicButtonFocus.png";
 });
-
-pauseSoundsBtn.addEventListener("focus", function () {
-    if (soundEffects) {
-        pauseSoundsIcon.src = "img/buttons/soundsButtonFocus.png";
-    } else {
-        pauseSoundsIcon.src = "img/buttons/noSoundsButtonFocus.png";
-    }
+pauseSoundsBtn.addEventListener("focus", () => {
+    if (soundEffects) pauseSoundsIcon.src = "img/buttons/soundsButtonFocus.png";
+    else pauseSoundsIcon.src = "img/buttons/noSoundsButtonFocus.png";
 });
-
-document.getElementById("music").addEventListener("focus", function () {
-    if (musicpause) {
-        musicIcon.src = "img/buttons/noMusicButtonFocus.png";
-    } else {
-        musicIcon.src = "img/buttons/musicButtonFocus.png";
-    }
+document.getElementById("music").addEventListener("focus", () => {
+    if (musicpause) musicIcon.src = "img/buttons/noMusicButtonFocus.png";
+    else musicIcon.src = "img/buttons/musicButtonFocus.png";
 });
-
-sound.addEventListener("focus", function () {
-    if (soundEffects) {
-        soundIcon.src = "img/buttons/soundsButtonFocus.png";
-    } else {
-        soundIcon.src = "img/buttons/noSoundsButtonFocus.png";
-    }
+sound.addEventListener("focus", () => {
+    if (soundEffects) soundIcon.src = "img/buttons/soundsButtonFocus.png";
+    else soundIcon.src = "img/buttons/noSoundsButtonFocus.png";
 });
-
 //blur
-restart.addEventListener("blur", function () {
-    restartIcon.src = "img/buttons/restartButton.png"
+restart.addEventListener("blur", () => restartIcon.src = "img/buttons/restartButton.png")
+home.addEventListener("blur", () => homeIcon.src = "img/buttons/homeButton.png")
+pauseStart.addEventListener("blur", () => pauseStartIcon.src = "img/buttons/playButton.png")
+pauseRestart.addEventListener("blur", () => pauseRestartIcon.src = "img/buttons/restartButton.png")
+pauseHome.addEventListener("blur", () => pauseHomeIcon.src = "img/buttons/homeButton.png")
+pauseMusicBtn.addEventListener("blur", () => {
+    if (musicpause) pauseMusicIcon.src = "img/buttons/noMusicButton.png";
+    else pauseMusicIcon.src = "img/buttons/musicButton.png";
 });
-
-home.addEventListener("blur", function () {
-    homeIcon.src = "img/buttons/homeButton.png"
+pauseSoundsBtn.addEventListener("blur", () => {
+    if (soundEffects) pauseSoundsIcon.src = "img/buttons/soundsButton.png";
+    else pauseSoundsIcon.src = "img/buttons/noSoundsButton.png";
 });
-
-pauseStart.addEventListener("blur", function () {
-    pauseStartIcon.src = "img/buttons/playButton.png"
+document.getElementById("music").addEventListener("blur", () => {
+    if (musicpause) musicIcon.src = "img/buttons/noMusicButton.png";
+    else musicIcon.src = "img/buttons/musicButton.png";
 });
-
-pauseRestart.addEventListener("blur", function () {
-    pauseRestartIcon.src = "img/buttons/restartButton.png"
+sound.addEventListener("blur", () => {
+    if (soundEffects) soundIcon.src = "img/buttons/soundsButton.png";
+    else soundIcon.src = "img/buttons/noSoundsButton.png";
 });
-
-pauseHome.addEventListener("blur", function () {
-    pauseHomeIcon.src = "img/buttons/homeButton.png"
-});
-
-pauseMusicBtn.addEventListener("blur", function () {
-    if (musicpause) {
-        pauseMusicIcon.src = "img/buttons/noMusicButton.png";
-    } else {
-        pauseMusicIcon.src = "img/buttons/musicButton.png";
-    }
-});
-
-pauseSoundsBtn.addEventListener("blur", function () {
-    if (soundEffects) {
-        pauseSoundsIcon.src = "img/buttons/soundsButton.png";
-    } else {
-        pauseSoundsIcon.src = "img/buttons/noSoundsButton.png";
-    }
-});
-
-document.getElementById("music").addEventListener("blur", function () {
-    if (musicpause) {
-        musicIcon.src = "img/buttons/noMusicButton.png";
-    } else {
-        musicIcon.src = "img/buttons/musicButton.png";
-    }
-});
-
-sound.addEventListener("blur", function () {
-    if (soundEffects) {
-        soundIcon.src = "img/buttons/soundsButton.png";
-    } else {
-        soundIcon.src = "img/buttons/noSoundsButton.png";
-    }
-});
-
 function tutorial() {
     document.getElementById('tutorial').style.display = "block";
     onhome = false;
-    setSoftKeys("", "Loading...", "");
-
-    ontutorial = true;
-    on1 = true;
-    setTutorialImageAndParagraph("img/tutorial_1.gif", "To pause the game, press the left soft key.")
+    ontutorial = on1 = true;
+    setTutorial("img/tutorial_1.gif", "To pause the game, press the left soft key.")
     setSoftKeys("Previous", "SKIP", "Next");
-    tutorialImgAp.style.display = "block";
-
-    localStorage["watchedTutorial"] = true;
+    localStorage.watchedTutorial = 'true';
 }
 
 
 function element(one, two, three) {
     if (arguments.length == 1) return document.activeElement == one;
     if (arguments.length == 2) return document.activeElement == one || document.activeElement == two;
-    if (arguments.length == 3) return document.activeElement == one || document.activeElement == two || document.activeElement == three;
+    return document.activeElement == one || document.activeElement == two || document.activeElement == three;
 }
 
 function nav(move, elems) {
@@ -838,26 +813,12 @@ function nav(move, elems) {
     const next = currentIndex + move;
     const items = document.querySelectorAll(elems);
     const targetElement = items[next];
-    console.log(currentIndex, next, items, targetElement)
-
-    if (move === 1 && currentIndex == items.length - 1) return items[0].focus();
-    if (move === -1 && currentIndex == 0) return items[items.length - 1].focus();
-    if (!targetElement) return;
-    targetElement.focus();
+    if (move === 1 && currentIndex === items.length - 1) return items[0].focus();
+    if (move === -1 && currentIndex === 0) return items[items.length - 1].focus();
+    if (targetElement) targetElement.focus();
 }
 
-function softkey(e) {
-    const { target, key, bubbles, cancelable, repeat, type } = e;
-    if (!/Left|Right/.test(key) || !key.startsWith("Arrow") || !e.ctrlKey) return;
-    e.stopImmediatePropagation();
-    e.stopPropagation();
-    e.preventDefault();
-    target.dispatchEvent(new KeyboardEvent(type, { key: "Soft" + key.slice(5), bubbles, cancelable, repeat }));
-}
-
-document.addEventListener("keyup", softkey, true);
-document.addEventListener("keydown", softkey, true);
-
+// !remove
 window.onerror = (a, b, c, d, e) => {
     console.log(`message: ${a} at ${b} in line ${c} at column ${d}`);
     alert('error')

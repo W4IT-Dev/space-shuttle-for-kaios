@@ -4,6 +4,7 @@
 <head>
     <link rel="stylesheet" href="style.css">
     <script defer src="script.js"></script>
+    <script src="kaiads.v5.min.js"></script>
 </head>
 
 <body onload="getStoredData();">
@@ -11,19 +12,14 @@
         <img id="volume" src="img/volume.png">
         <div id="scoreDisplay">HighScore: 0</div>
     </div>
-
     <div id="startScreen">
         <img id="logo" src="img/logo.png">
         <button id="start"><img id="startIcon" src="img/buttons/playButton.png"></button>
     </div>
-
     <div id="tutorial">
-        <div id="tutorialImgAp">
-            <img id="tutorialImage" src="img/tutorial/tutorial_1.gif">
-            <p id="tutorialParagraph">To pause the game, press the left softkey.</p>
-        </div>
+        <img id="tutorialImage" src="img/tutorial/tutorial_1.gif">
+        <p id="tutorialParagraph">To pause the game, press the left softkey.</p>
     </div>
-
     <div id="settings">
         <div id="setting-options">
             <div tabindex="-1" class="settings-options" id="option-mainsettings">Main</div>
@@ -36,7 +32,6 @@
                     src="/img/buttons/soundsButton.png"></button>
         </div>
     </div>
-
     <div id="pause">
         <h1>Paused</h1>
         <div id="pauseButtons">
@@ -46,7 +41,6 @@
                     src="img/buttons/restartButton.png"></button>
             <button id="pauseHome"><img class="pauseButton" id="pauseHomeIcon"
                     src="img/buttons/homeButton.png"></button>
-
         </div>
         <div id="pauseSoundButtons">
             <h3>Sounds:</h3>
@@ -54,7 +48,6 @@
             <button id="pauseSoundsBtn"><img id="pauseSoundsIcon" src="/img/buttons/soundsButton.png"></button>
         </div>
     </div>
-
     <div id="restartScreen">
         <h3 id="score"></h3>
         <h3 id="highScore"></h3>
@@ -63,7 +56,6 @@
             <button id="home"><img id="homeIcon" src="img/buttons/homeButton.png"></button>
         </div>
     </div>
-
     <div id="exit">
         <h3>Do you really want to exit?</h3>
         <div id="options">
@@ -71,12 +63,10 @@
             <div id="yes">Yes</div>
         </div>
     </div>
-
     <canvas id="canvas" width="317" height="210"></canvas>
-
     <footer id="softkey">
         <div id="softkeyLeft">Settings</div>
-        <div id="softkeyEnter"></div>
+        <div id="softkeyEnter" style="font-weight: 800;"></div>
         <div id="softkeyRight">Tutorial</div>
     </footer>
 </body>
